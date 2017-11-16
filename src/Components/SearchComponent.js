@@ -10,7 +10,6 @@ class SearchComponent extends Component {
       };
   
       this.handleChange = this.handleChange.bind(this);
-      this.handleCheckboxClick = this.handleCheckboxClick.bind(this);
     }
   
     
@@ -20,28 +19,32 @@ class SearchComponent extends Component {
     }
   
     addItemToList() {
-      const isDoneDefaultValue = false;
-      this.state.listMembers.push([this.state.value, isDoneDefaultValue]);
-      this.setState({value: ''});
-      console.log(this.state.listMembers);
+      const listMember = {value: this.state.value, isDone: false}
+      const newListMembers = this.state.listMembers.slice();
+      newListMembers.push(listMember);
+      this.setState({value: '', listMembers: newListMembers});
+      
     }
 
-    handleCheckboxClick(event) {
-      console.log(event.target);
-      console.log(event.target.value)
+    handleCheckboxClick(index) {
+      const newListMembers = this.state.listMembers.slice();
+      newListMembers[index].isDone = !newListMembers[index].isDone;
+      this.setState({
+        listMembers: newListMembers,
+      })    
     }
   
     render () {
-        const listPositions = this.state.listMembers.map((listPosition, iterator) => {
+      
+        const listPositions = this.state.listMembers.map((listPosition, index) => {
             return (
-                <List   key={iterator}
-                        keyValue={iterator}
-                        value={listPosition[0]}
-                        onClick={this.handleCheckboxClick}
+                <List   key={index}
+                        keyValue={index}
+                        value={listPosition.value}
+                        onClick={this.handleCheckboxClick.bind(this, index)}
                 />
             )
         });
-        console.log(listPositions);
       return (
         <div>
         <div className="textboxPanel">
