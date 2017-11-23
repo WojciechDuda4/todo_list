@@ -6,7 +6,8 @@ class List extends Component {
         return (
           <div key = {this.props.keyValue}>
           <input    type="checkbox" 
-                    onClick={this.props.onClick} />
+                    onClick={this.props.onClick}
+                    checked={this.props.checked} />
           <label>{this.props.value}</label>
           </div>
         )
