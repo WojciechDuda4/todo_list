@@ -4,6 +4,12 @@ import Title from "./Components/Title";
 import SearchComponent from "./Components/SearchComponent";
 import List from "./Components/List";
 
+/* TODO
+- Dodanie daty do pozycji i kategoryzowanie ich po tym (do 7 dni w przód)
+- Dodać zbiór etykiet dla zadań
+- Pobawić się css w celu upiększenia strony
+*/
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -15,30 +21,36 @@ class App extends Component {
   }
 
   handleCheckboxClick(index) {
-    const newListMembers = this.state.listMembers.slice();
-    const newDoneListMembers = this.state.doneListMembers.slice();
+    let newListMembers = this.state.listMembers.slice();
+    let newDoneListMembers = this.state.doneListMembers.slice();
     const newDoneListMember = this.state.listMembers[index];
     newDoneListMember.isDone = !newDoneListMember.isDone;
+    newDoneListMember.realizationDate = this.getActualDate();
     newListMembers.splice(index, 1);
     newDoneListMembers.push(newDoneListMember);
+    newListMembers = this.sortByDate(newListMembers);
+    newDoneListMembers = this.sortByDate(newDoneListMembers);
     this.setState({
       listMembers: newListMembers,
       doneListMembers: newDoneListMembers
-    }) 
+    }, () => console.log(this.state.doneListMembers)) 
      
   }
 
   handleDoneCheckboxClick(index) {
-    const newListMembers = this.state.listMembers.slice();
-    const newDoneListMembers = this.state.doneListMembers.slice();
+    let newListMembers = this.state.listMembers.slice();
+    let newDoneListMembers = this.state.doneListMembers.slice();
     const newListMember = this.state.doneListMembers[index];
     newListMember.isDone = !newListMember.isDone;
+    newListMember.realizationDate = '';
     newListMembers.push(newListMember);
     newDoneListMembers.splice(index, 1);
+    newListMembers = this.sortByDate(newListMembers);
+    newDoneListMembers = this.sortByDate(newDoneListMembers);
     this.setState({
       listMembers: newListMembers,
       doneListMembers: newDoneListMembers
-    }) 
+    }, () => console.log(this.state.doneListMembers)) 
   }
 
   handleChange (event) {
@@ -46,11 +58,42 @@ class App extends Component {
   }
 
   addItemToList() {
-    const listMember = {value: this.state.value, isDone: false}
-    const newListMembers = this.state.listMembers.slice();
+    const actualDate = this.getActualDate();
+    const listMember = {value: this.state.value, isDone: false, plannedDate: actualDate, realizationDate: ''};
+    console.log(listMember);
+    let newListMembers = this.state.listMembers.slice();
     newListMembers.push(listMember);
+
+    newListMembers = this.sortByDate(newListMembers);
     this.setState({value: '', listMembers: newListMembers}, () => console.log(this.state.listMembers));
     
+  }
+
+  sortByDate(list) {
+    if (list.realizationDate)
+    {
+      list.sort(function(a, b){return Date.parse(a.realizationDate - b.realizationDate)});
+    }
+    else
+    {
+      list.sort(function(a, b){return Date.parse(a.plannedDate - b.plannedDate)});
+    }
+    
+    return list;
+  }
+
+  getActualDate() {
+    let date = new Date();
+    let year = date.getFullYear().toString();
+    let month = date.getMonth().toString();
+    let day = date.getDate().toString();
+    let dash = '-';
+    if (day.length === 1)
+    {
+      day = '0' + day;
+    }
+    let actualDate = year.concat(dash.concat(month.concat(dash.concat(day))));
+    return actualDate;
   }
 
   render() {
@@ -58,9 +101,11 @@ class App extends Component {
       return (
           <List   key={index}
                   keyValue={index}
+                  text={" - Planowana data wykonania: "}
                   checked={listPosition.isDone}
                   value={listPosition.value}
-                  onClick={this.handleCheckboxClick.bind(this, index)}
+                  Date={listPosition.plannedDate}
+                  onChange={this.handleCheckboxClick.bind(this, index)}
           />
       )
   });
@@ -68,9 +113,11 @@ class App extends Component {
       return (
         <List   key={index}
         keyValue={index}
+        text = {" - Data wykonania: "}
         checked={doneListPosition.isDone}
         value={doneListPosition.value}
-        onClick={this.handleDoneCheckboxClick.bind(this, index)}
+        Date={doneListPosition.realizationDate}
+        onChange={this.handleDoneCheckboxClick.bind(this, index)}
           />
       )
     }

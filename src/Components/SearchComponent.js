@@ -1,12 +1,6 @@
-/* TODO
-- Dodanie daty do pozycji i kategoryzowanie ich po tym (do 7 dni w przód)
-- Zrobione pozycje przenosić do sekcji zrobione
-- Dodać zbiór etykiet dla zadań
-- Pobawić się css w celu upiększenia strony
-*/
+
 
 import React, {Component} from 'react';
-import List from "./List";
 
 class SearchComponent extends Component {
     render () {
