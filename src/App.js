@@ -76,7 +76,7 @@ class App extends Component {
     }
     else
     {
-      list.sort(function(a, b){return Date.parse(a.plannedDate - b.plannedDate)});
+      list.sort(function(a, b){return Date.parse(a.plannedDate) - Date.parse(b.plannedDate)});
     }
     
     return list;
@@ -87,12 +87,32 @@ class App extends Component {
     let year = date.getFullYear().toString();
     let month = date.getMonth().toString();
     let day = date.getDate().toString();
+    let hour = date.getHours().toString();
+    let minutes = date.getMinutes().toString();
+    let seconds = date.getSeconds().toString();
     let dash = '-';
+    let colon = ':';
+    if (month.length === 1)
+    {
+      month = '0' + month;
+    }
     if (day.length === 1)
     {
       day = '0' + day;
     }
-    let actualDate = year.concat(dash.concat(month.concat(dash.concat(day))));
+    if (hour.length === 1)
+    {
+      hour = '0' + hour;
+    }
+    if (minutes.length === 1)
+    {
+      minutes = '0' + minutes;
+    }
+    if (seconds.length === 1)
+    {
+      seconds = '0' + seconds;
+    }
+    let actualDate = year + dash + month + dash + day + ' ' + hour + colon + minutes + colon + seconds;
     return actualDate;
   }
 
