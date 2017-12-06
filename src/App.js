@@ -6,8 +6,10 @@ import List from "./Components/List";
 import FilterComponent from "./Components/FilterComponent";
 
 /* TODO
+- Zamienić ręczne tworzenie daty na bibliotekę moment.js
 - Dodać zbiór etykiet dla zadań
 - Pobawić się css w celu upiększenia strony
+- Usuwanie pozycji
 */
 
 class App extends Component {
@@ -16,44 +18,26 @@ class App extends Component {
     this.state = {
       value: '',
       filterValue: '',
-      listMembers: [],
-      doneListMembers: [],
-      filteredListMembers: [],
-      filteredDoneListMembers: [],
+       listMembers: []
     };
   }
 
-  handleCheckboxClick(item) {
+  handleCheckboxClick(index) {
     let newListMembers = this.state.listMembers.slice();
-    let newDoneListMembers = this.state.doneListMembers.slice();
-    const newDoneListMember = this.state.listMembers[this.state.listMembers.indexOf(item)];
-    newDoneListMember.isDone = !newDoneListMember.isDone;
-    newDoneListMember.realizationDate = this.getActualDate();
-    newListMembers.splice(this.state.listMembers.indexOf(item), 1);
-    newDoneListMembers.push(newDoneListMember);
-    newListMembers = this.sortByDate(newListMembers);
-    newDoneListMembers = this.sortByDate(newDoneListMembers);
+    if (!newListMembers[index].isDone)
+    {
+      newListMembers[index].realizationDate = getCurrentDate();
+    }
+    else
+    {
+      newListMembers[index].realizationDate = '';
+    }
+    newListMembers[index].isDone = !newListMembers[index].isDone;
+    
     this.setState({
-      listMembers: newListMembers,
-      doneListMembers: newDoneListMembers,
-    }, () => this.filterValues()) 
+      listMembers: newListMembers
+    }) 
      
-  }
-
-  handleDoneCheckboxClick(item) {
-    let newListMembers = this.state.listMembers.slice();
-    let newDoneListMembers = this.state.doneListMembers.slice();
-    const newListMember = this.state.doneListMembers[this.state.doneListMembers.indexOf(item)];
-    newListMember.isDone = !newListMember.isDone;
-    newListMember.realizationDate = '';
-    newListMembers.push(newListMember);
-    newDoneListMembers.splice(this.state.doneListMembers.indexOf(item), 1);
-    newListMembers = this.sortByDate(newListMembers);
-    newDoneListMembers = this.sortByDate(newDoneListMembers);
-    this.setState({
-      listMembers: newListMembers,
-      doneListMembers: newDoneListMembers
-    }, () => this.filterValues()) 
   }
 
   handleChange (event) {
@@ -61,41 +45,15 @@ class App extends Component {
   }
 
   handleFilterChange(event) {
-    this.setState({filterValue: event.target.value}, () => this.filterValues());
+    this.setState({filterValue: event.target.value});
   }
 
   addItemToList() {
-    const actualDate = this.getActualDate();
+    const actualDate = getCurrentDate();
     const listMember = {value: this.state.value, isDone: false, plannedDate: actualDate, realizationDate: ''};
     let newListMembers = this.state.listMembers.slice();
     newListMembers.push(listMember);
-
-    newListMembers = this.sortByDate(newListMembers);
-    this.setState({value: '', listMembers: newListMembers
-      },  () => this.filterValues());
-    
-  }
-
-  filterValues() {
-    let newListMembers = [];
-    let newDoneListMembers = [];
-    let pattern = ".*" + this.state.filterValue + ".*";
-    let regex = new RegExp(pattern, "i")
-    this.state.listMembers.forEach((item) => {
-      if (item.value.match(regex)) {
-        newListMembers.push(item);
-        console.log(newListMembers);
-      }
-  })
-    this.state.doneListMembers.forEach((item) => {
-      if (item.value.match(regex)) {
-      newDoneListMembers.push(item);
-      console.log(newDoneListMembers);
-      }
-  })
-    this.setState({filteredListMembers: newListMembers,
-                  filteredDoneListMembers: newDoneListMembers
-                });
+    this.setState({value: '', listMembers: newListMembers});
   }
 
   sortByDate(list) {
@@ -111,97 +69,49 @@ class App extends Component {
     return list;
   }
 
-  getActualDate() {
-    let date = new Date();
-    let year = date.getFullYear().toString();
-    let month = date.getMonth().toString();
-    let day = date.getDate().toString();
-    let hour = date.getHours().toString();
-    let minutes = date.getMinutes().toString();
-    let seconds = date.getSeconds().toString();
-    let dash = '-';
-    let colon = ':';
-    if (month.length === 1)
-    {
-      month = '0' + month;
-    }
-    if (day.length === 1)
-    {
-      day = '0' + day;
-    }
-    if (hour.length === 1)
-    {
-      hour = '0' + hour;
-    }
-    if (minutes.length === 1)
-    {
-      minutes = '0' + minutes;
-    }
-    if (seconds.length === 1)
-    {
-      seconds = '0' + seconds;
-    }
-    let actualDate = year + dash + month + dash + day + ' ' + hour + colon + minutes + colon + seconds;
-    return actualDate;
+  CheckValueUsingRegex(value) {
+    let pattern = ".*" + this.state.filterValue + ".*";
+    let regex = new RegExp(pattern, "i");
+    if (!value.match(regex))
+      return false;
+    else
+      return true;
   }
 
   render() {
-    let listPositions, doneListPositions;
-    if (!this.state.filterValue)
-    {
-    listPositions = this.state.listMembers.map((listPosition, index) => {
-      return (
+
+    const listPositions = this.state.listMembers.map((listPosition, index) => {
+      if (!listPosition.isDone && this.CheckValueUsingRegex(listPosition.value))
+      {
+        return (
           <List   key={index}
                   keyValue={index}
                   text={" - Planowana data wykonania: "}
                   checked={listPosition.isDone}
                   value={listPosition.value}
                   Date={listPosition.plannedDate}
-                  onChange={this.handleCheckboxClick.bind(this, listPosition)}
+                  onChange={this.handleCheckboxClick.bind(this, index)}
           />
-      )
-  });
-    doneListPositions = this.state.doneListMembers.map((doneListPosition, index) => {
-      return (
-        <List   key={index}
-        keyValue={index}
-        text = {" - Data wykonania: "}
-        checked={doneListPosition.isDone}
-        value={doneListPosition.value}
-        Date={doneListPosition.realizationDate}
-        onChange={this.handleDoneCheckboxClick.bind(this, doneListPosition)}
-          />
-      )
-    }
-  )
-}
-  else {
-    listPositions = this.state.filteredListMembers.map((filteredListPosition, index) => {
-      return (
+        )
+      }
+    })
+
+    const doneListPositions = this.state.listMembers.map((doneListPosition, index) => {
+      if (doneListPosition.isDone && this.CheckValueUsingRegex(doneListPosition.value))
+      {
+        return (
           <List   key={index}
                   keyValue={index}
-                  text={" - Planowana data wykonania: "}
-                  checked={filteredListPosition.isDone}
-                  value={filteredListPosition.value}
-                  Date={filteredListPosition.plannedDate}
-                  onChange={this.handleCheckboxClick.bind(this, filteredListPosition)}
+                  text={" - Data wykonania: "}
+                  checked={doneListPosition.isDone}
+                  value={doneListPosition.value}
+                  Date={doneListPosition.realizationDate}
+                  onChange={this.handleCheckboxClick.bind(this, index)}
           />
-      )
-  });
-    doneListPositions = this.state.filteredDoneListMembers.map((filteredDoneListPosition, index) => {
-      return (
-        <List   key={index}
-        keyValue={index}
-        text = {" - Data wykonania: "}
-        checked={filteredDoneListPosition.isDone}
-        value={filteredDoneListPosition.value}
-        Date={filteredDoneListPosition.realizationDate}
-        onChange={this.handleDoneCheckboxClick.bind(this, filteredDoneListPosition)}
-          />
-      )
-    }
-  )
-  }
+        )
+      }
+    })
+
     return (
       <div>
         <div>
@@ -221,18 +131,52 @@ class App extends Component {
         <section style={{width: 600}}>
         <div>
           <h4>Do zrobienia:</h4>
-              {listPositions}
+              {this.sortByDate(listPositions)}
         </div>
         </section>
         <section >
         <div>
           <h4>Wykonane:</h4>
-              {doneListPositions}
+              {this.sortByDate(doneListPositions)}
         </div>
         </section>
       </div>
     );
   }
+}
+
+function getCurrentDate() {
+  let date = new Date();
+  let year = date.getFullYear().toString();
+  let month = date.getMonth().toString();
+  let day = date.getDate().toString();
+  let hour = date.getHours().toString();
+  let minutes = date.getMinutes().toString();
+  let seconds = date.getSeconds().toString();
+  let dash = '-';
+  let colon = ':';
+  if (month.length === 1)
+  {
+    month = '0' + month;
+  }
+  if (day.length === 1)
+  {
+    day = '0' + day;
+  }
+  if (hour.length === 1)
+  {
+    hour = '0' + hour;
+  }
+  if (minutes.length === 1)
+  {
+    minutes = '0' + minutes;
+  }
+  if (seconds.length === 1)
+  {
+    seconds = '0' + seconds;
+  }
+  let actualDate = year + dash + month + dash + day + ' ' + hour + colon + minutes + colon + seconds;
+  return actualDate;
 }
 
 export default App;
