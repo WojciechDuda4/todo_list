@@ -23,37 +23,37 @@ class App extends Component {
     };
   }
 
-  handleCheckboxClick(index) {
+  handleCheckboxClick(item) {
     let newListMembers = this.state.listMembers.slice();
     let newDoneListMembers = this.state.doneListMembers.slice();
-    const newDoneListMember = this.state.listMembers[index];
+    const newDoneListMember = this.state.listMembers[this.state.listMembers.indexOf(item)];
     newDoneListMember.isDone = !newDoneListMember.isDone;
     newDoneListMember.realizationDate = this.getActualDate();
-    newListMembers.splice(index, 1);
+    newListMembers.splice(this.state.listMembers.indexOf(item), 1);
     newDoneListMembers.push(newDoneListMember);
     newListMembers = this.sortByDate(newListMembers);
     newDoneListMembers = this.sortByDate(newDoneListMembers);
     this.setState({
       listMembers: newListMembers,
       doneListMembers: newDoneListMembers,
-    }, () => console.log(this.state.doneListMembers)) 
+    }, () => this.filterValues()) 
      
   }
 
-  handleDoneCheckboxClick(index) {
+  handleDoneCheckboxClick(item) {
     let newListMembers = this.state.listMembers.slice();
     let newDoneListMembers = this.state.doneListMembers.slice();
-    const newListMember = this.state.doneListMembers[index];
+    const newListMember = this.state.doneListMembers[this.state.doneListMembers.indexOf(item)];
     newListMember.isDone = !newListMember.isDone;
     newListMember.realizationDate = '';
     newListMembers.push(newListMember);
-    newDoneListMembers.splice(index, 1);
+    newDoneListMembers.splice(this.state.doneListMembers.indexOf(item), 1);
     newListMembers = this.sortByDate(newListMembers);
     newDoneListMembers = this.sortByDate(newDoneListMembers);
     this.setState({
       listMembers: newListMembers,
       doneListMembers: newDoneListMembers
-    }, () => console.log(this.state.doneListMembers)) 
+    }, () => this.filterValues()) 
   }
 
   handleChange (event) {
@@ -67,13 +67,12 @@ class App extends Component {
   addItemToList() {
     const actualDate = this.getActualDate();
     const listMember = {value: this.state.value, isDone: false, plannedDate: actualDate, realizationDate: ''};
-    console.log(listMember);
     let newListMembers = this.state.listMembers.slice();
     newListMembers.push(listMember);
 
     newListMembers = this.sortByDate(newListMembers);
     this.setState({value: '', listMembers: newListMembers
-      },  () => console.log(this.state.listMembers));
+      },  () => this.filterValues());
     
   }
 
@@ -81,7 +80,7 @@ class App extends Component {
     let newListMembers = [];
     let newDoneListMembers = [];
     let pattern = ".*" + this.state.filterValue + ".*";
-    let regex = new RegExp(pattern)
+    let regex = new RegExp(pattern, "i")
     this.state.listMembers.forEach((item) => {
       if (item.value.match(regex)) {
         newListMembers.push(item);
@@ -158,7 +157,7 @@ class App extends Component {
                   checked={listPosition.isDone}
                   value={listPosition.value}
                   Date={listPosition.plannedDate}
-                  onChange={this.handleCheckboxClick.bind(this, index)}
+                  onChange={this.handleCheckboxClick.bind(this, listPosition)}
           />
       )
   });
@@ -170,7 +169,7 @@ class App extends Component {
         checked={doneListPosition.isDone}
         value={doneListPosition.value}
         Date={doneListPosition.realizationDate}
-        onChange={this.handleDoneCheckboxClick.bind(this, index)}
+        onChange={this.handleDoneCheckboxClick.bind(this, doneListPosition)}
           />
       )
     }
@@ -185,7 +184,7 @@ class App extends Component {
                   checked={filteredListPosition.isDone}
                   value={filteredListPosition.value}
                   Date={filteredListPosition.plannedDate}
-                  onChange={this.handleCheckboxClick.bind(this, index)}
+                  onChange={this.handleCheckboxClick.bind(this, filteredListPosition)}
           />
       )
   });
@@ -197,7 +196,7 @@ class App extends Component {
         checked={filteredDoneListPosition.isDone}
         value={filteredDoneListPosition.value}
         Date={filteredDoneListPosition.realizationDate}
-        onChange={this.handleDoneCheckboxClick.bind(this, index)}
+        onChange={this.handleDoneCheckboxClick.bind(this, filteredDoneListPosition)}
           />
       )
     }
