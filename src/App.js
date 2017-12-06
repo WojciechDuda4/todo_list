@@ -102,7 +102,7 @@ class App extends Component {
   sortByDate(list) {
     if (list.realizationDate)
     {
-      list.sort(function(a, b){return Date.parse(a.realizationDate - b.realizationDate)});
+      list.sort(function(a, b){return Date.parse(a.realizationDate) - Date.parse(b.realizationDate)});
     }
     else
     {
