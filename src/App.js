@@ -3,9 +3,9 @@ import './App.css';
 import Title from "./Components/Title";
 import SearchComponent from "./Components/SearchComponent";
 import List from "./Components/List";
+import FilterComponent from "./Components/FilterComponent";
 
 /* TODO
-- Dodanie daty do pozycji i kategoryzowanie ich po tym (do 7 dni w przód)
 - Dodać zbiór etykiet dla zadań
 - Pobawić się css w celu upiększenia strony
 */
@@ -15,8 +15,11 @@ class App extends Component {
     super(props);
     this.state = {
       value: '',
+      filterValue: '',
       listMembers: [],
-      doneListMembers: []
+      doneListMembers: [],
+      filteredListMembers: [],
+      filteredDoneListMembers: [],
     };
   }
 
@@ -32,7 +35,7 @@ class App extends Component {
     newDoneListMembers = this.sortByDate(newDoneListMembers);
     this.setState({
       listMembers: newListMembers,
-      doneListMembers: newDoneListMembers
+      doneListMembers: newDoneListMembers,
     }, () => console.log(this.state.doneListMembers)) 
      
   }
@@ -57,6 +60,10 @@ class App extends Component {
     this.setState({value: event.target.value});
   }
 
+  handleFilterChange(event) {
+    this.setState({filterValue: event.target.value}, () => this.filterValues());
+  }
+
   addItemToList() {
     const actualDate = this.getActualDate();
     const listMember = {value: this.state.value, isDone: false, plannedDate: actualDate, realizationDate: ''};
@@ -65,8 +72,31 @@ class App extends Component {
     newListMembers.push(listMember);
 
     newListMembers = this.sortByDate(newListMembers);
-    this.setState({value: '', listMembers: newListMembers}, () => console.log(this.state.listMembers));
+    this.setState({value: '', listMembers: newListMembers
+      },  () => console.log(this.state.listMembers));
     
+  }
+
+  filterValues() {
+    let newListMembers = [];
+    let newDoneListMembers = [];
+    let pattern = ".*" + this.state.filterValue + ".*";
+    let regex = new RegExp(pattern)
+    this.state.listMembers.forEach((item) => {
+      if (item.value.match(regex)) {
+        newListMembers.push(item);
+        console.log(newListMembers);
+      }
+  })
+    this.state.doneListMembers.forEach((item) => {
+      if (item.value.match(regex)) {
+      newDoneListMembers.push(item);
+      console.log(newDoneListMembers);
+      }
+  })
+    this.setState({filteredListMembers: newListMembers,
+                  filteredDoneListMembers: newDoneListMembers
+                });
   }
 
   sortByDate(list) {
@@ -117,7 +147,10 @@ class App extends Component {
   }
 
   render() {
-    const listPositions = this.state.listMembers.map((listPosition, index) => {
+    let listPositions, doneListPositions;
+    if (!this.state.filterValue)
+    {
+    listPositions = this.state.listMembers.map((listPosition, index) => {
       return (
           <List   key={index}
                   keyValue={index}
@@ -129,7 +162,7 @@ class App extends Component {
           />
       )
   });
-    const doneListPositions = this.state.doneListMembers.map((doneListPosition, index) => {
+    doneListPositions = this.state.doneListMembers.map((doneListPosition, index) => {
       return (
         <List   key={index}
         keyValue={index}
@@ -142,6 +175,34 @@ class App extends Component {
       )
     }
   )
+}
+  else {
+    listPositions = this.state.filteredListMembers.map((filteredListPosition, index) => {
+      return (
+          <List   key={index}
+                  keyValue={index}
+                  text={" - Planowana data wykonania: "}
+                  checked={filteredListPosition.isDone}
+                  value={filteredListPosition.value}
+                  Date={filteredListPosition.plannedDate}
+                  onChange={this.handleCheckboxClick.bind(this, index)}
+          />
+      )
+  });
+    doneListPositions = this.state.filteredDoneListMembers.map((filteredDoneListPosition, index) => {
+      return (
+        <List   key={index}
+        keyValue={index}
+        text = {" - Data wykonania: "}
+        checked={filteredDoneListPosition.isDone}
+        value={filteredDoneListPosition.value}
+        Date={filteredDoneListPosition.realizationDate}
+        onChange={this.handleDoneCheckboxClick.bind(this, index)}
+          />
+      )
+    }
+  )
+  }
     return (
       <div>
         <div>
@@ -151,6 +212,11 @@ class App extends Component {
           <SearchComponent value={this.state.value}
                            onClick={this.addItemToList.bind(this)}
                            onChange={this.handleChange.bind(this)}
+          />
+        </div>
+        <div>
+          <FilterComponent value={this.state.filterValue}
+                            onChange={this.handleFilterChange.bind(this)}
           />
         </div>
         <section style={{width: 600}}>
